@@ -33,8 +33,6 @@ RUN wget -q https://github.com/aptible/supercronic/archive/refs/tags/${SUPERCRON
 
 FROM ghcr.io/usa-reddragon/steamcmd:main@sha256:6efae378ecf6e2c269874ce948ebc7a7406c60b4ee1f2bdba14107c450e79f0a
 
-# Ignoring, future refactor
-# hadolint ignore=DL3002
 USER root
 
 # renovate: datasource=repology versioning=deb depName=debian_12/procps
