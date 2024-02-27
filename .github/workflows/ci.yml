@@ -17,3 +17,5 @@ jobs:
     uses: USA-RedDragon/reusable-actions/.github/workflows/docker-ci.yaml@v1.0.18
     with:
       push: ${{ github.event_name != 'pull_request' }}
+      image-name: usa-reddragon/palworld-server
+      
