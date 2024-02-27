@@ -13,6 +13,10 @@
 >
 > ### Persistence
 > This fork places saves at `/saves` and backups at `/backups` in the container.
+>
+> ### Chart changes
+> A fork of the Helm chart is hosted at <https://charts.mcswain.dev/charts/palworld/>. This fork takes advantage
+> of the persistence changes and uses a readiness and liveness probe by default to check the health of your deployment.
 > 
 > ### Server versions
 > The Palworld server is packaged into this image and only updates to the image change the Palworld server version.
