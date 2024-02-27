@@ -13,6 +13,9 @@ jobs:
     name: Docker - Test (amd64)
     runs-on: ubuntu-latest
     steps:
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -113,6 +116,9 @@ jobs:
     name: Docker - Test (arm64)
     runs-on: ubuntu-latest
     steps:
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
+
       - name: Checkout
         uses: actions/checkout@v4
 
