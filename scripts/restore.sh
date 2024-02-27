@@ -112,7 +112,7 @@ if [ -f "$BACKUP_FILE" ]; then
             tar -zxvf "$BACKUP_FILE" -C "$TMP_PATH"
 
             # Make sure Saves with a different ID are removed before restoring the save
-            rm -rf "$RESTORE_PATH/"
+            rm -rf "${RESTORE_PATH:?}/"
 
             # Move the backup file to the restore directory
             \cp -rf -f "$TMP_PATH/" "$RESTORE_PATH"
