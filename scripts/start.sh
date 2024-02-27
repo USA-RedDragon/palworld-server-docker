@@ -51,7 +51,7 @@ if [ "${MULTITHREADING,,}" = true ]; then
 fi
 
 if [ "${RCON_ENABLED,,}" = true ]; then
-    STARTCOMMAND+=("-rcon)
+    STARTCOMMAND+=("-rcon")
 fi
 
 if [ "${DISABLE_GENERATE_SETTINGS,,}" = true ]; then
