@@ -1,12 +1,18 @@
 # Palworld Dedicated Server Docker
 
 > [!IMPORTANT]
-> This is a fork which has a bit stricter versioning enabled with [Renovate](https://github.com/apps/renovate) managing dependencies
-> and modified for my own use. If you've stumbled upon this repository, you probably want the upstream repository
-> which can be found at <https://github.com/thijsvanloef/palworld-server-docker>.
+> ## This is a fork
+> This is a fork which has stricter dependency verison pinning enabled with [Renovate](https://github.com/apps/renovate)
+> managing them. If you've stumbled upon this repository, you probably want the upstream repository which can be
+> found at <https://github.com/thijsvanloef/palworld-server-docker>.
 >
+> ## How is it different?
 > This fork also disables Discord messages, always runs as user `steam` (PID/GID `1000`), and disables auto updates.
-> Instead, the server is packaged into this image and only updates to the image change the Palworld server version.
+> Additionally, it also does not require the game files be stored in a Docker volume, instead requiring only saves
+> to be stored. This fork uses an ARM64 + AMD64 unified SteamCMD located at <https://github.com/USA-RedDragon/steamcmd/>
+> 
+> ### Server versions
+> The Palworld server is packaged into this image and only updates to the image change the Palworld server version.
 > This is accomplished by <https://github.com/USA-RedDragon/palworld-server> containing an hourly CI job to check
 > for new Palworld build IDs and publishing the relevant files to GitHub Releases. This avoids issues where Palworld
 > releases an update that breaks the way the Docker image expects it to behave, like as seen in the v1.0.5 update.
@@ -138,7 +144,7 @@ docker run -d \
 
 ### Kubernetes
 
-The official Helm chart can be found in a seperate repository, [palworld-server-chart](https://github.com/Twinki14/palworld-server-chart)
+The Helm chart for this fork can be found at <https://charts.mcswain.dev/charts/palworld/>
 
 ### Environment variables
 
