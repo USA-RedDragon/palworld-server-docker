@@ -50,6 +50,10 @@ if [ "${MULTITHREADING,,}" = true ]; then
     STARTCOMMAND+=("-useperfthreads" "-NoAsyncLoadingThread" "-UseMultithreadForDS")
 fi
 
+if [ "${RCON_ENABLED,,}" = true ]; then
+    STARTCOMMAND+=("-rconport=${RCON_PORT}")
+fi
+
 if [ "${DISABLE_GENERATE_SETTINGS,,}" = true ]; then
   printf "\e[0;32m%s\e[0m\n" "*****CHECKING FOR EXISTING CONFIG*****"
   printf "\e[0;32m%s\e[0m\n" "***Env vars will not be applied due to DISABLE_GENERATE_SETTINGS being set to TRUE!***"
