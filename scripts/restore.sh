@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Backup file directory path
-BACKUP_DIRECTORY_PATH="/palworld/backups"
+BACKUP_DIRECTORY_PATH="/backups"
 
 # Resotre path
-RESTORE_PATH="/palworld/Pal"
+RESTORE_PATH="/saves"
 
 # Copy the save file before restore temporary path
-TMP_SAVE_PATH="/palworld/backups/restore-"$(date +"%Y-%m-%d_%H-%M-%S")
+TMP_SAVE_PATH="/backups/restore-"$(date +"%Y-%m-%d_%H-%M-%S")
 
 # shellcheck disable=SC2317
 term_error_handler() {
@@ -18,11 +18,11 @@ term_error_handler() {
 # shellcheck disable=SC2317
 restore_error_handler() {
     printf "\033[0;31mAn error occurred during restore.\033[0m\n"
-    if [ -d "$TMP_SAVE_PATH/Saved" ]; then
+    if [ -d "$TMP_SAVE_PATH" ]; then
         read -rp "I have a backup before recovery can proceed. Do you want to recovery it? (y/n): " RUN_ANSWER
         if [[ ${RUN_ANSWER,,} == "y" ]]; then
-            rm -rf "$RESTORE_PATH/Saved"
-            mv "$TMP_SAVE_PATH/Saved" "$RESTORE_PATH"
+            rm -rf "$RESTORE_PATH"
+            mv "$TMP_SAVE_PATH" "$RESTORE_PATH"
             printf "\e[0;32mRecovery complete.\e[0m\n"
         fi
     fi
@@ -86,16 +86,16 @@ if [ -f "$BACKUP_FILE" ]; then
         # Recheck the backup file
         if [ -f "$BACKUP_FILE" ]; then
             # Copy the save file before restore
-            if [ -d "$RESTORE_PATH/Saved" ]; then
+            if [ -d "$RESTORE_PATH" ]; then
                 echo "Saves the current state before the restore proceeds."
                 echo "$TMP_SAVE_PATH"
                 mkdir -p "$TMP_SAVE_PATH"
                 if [ "$(id -u)" -eq 0 ]; then
                     chown steam:steam "$TMP_SAVE_PATH"
                 fi
-                \cp -rf "$RESTORE_PATH/Saved" "$TMP_SAVE_PATH/Saved"
+                \cp -rf "$RESTORE_PATH" "$TMP_SAVE_PATH"
 
-                while [ ! -d "$TMP_SAVE_PATH/Saved" ]; do
+                while [ ! -d "$TMP_SAVE_PATH" ]; do
                     sleep 1
                 done
 
@@ -103,7 +103,7 @@ if [ -f "$BACKUP_FILE" ]; then
             fi
             
             # Create tmp directory
-            TMP_PATH=$(mktemp -d -p "/palworld/backups")
+            TMP_PATH=$(mktemp -d -p "/backups")
             if [ "$(id -u)" -eq 0 ]; then
                 chown steam:steam "$TMP_PATH"
             fi
@@ -112,10 +112,10 @@ if [ -f "$BACKUP_FILE" ]; then
             tar -zxvf "$BACKUP_FILE" -C "$TMP_PATH"
 
             # Make sure Saves with a different ID are removed before restoring the save
-            rm -rf "$RESTORE_PATH/Saved/"
+            rm -rf "$RESTORE_PATH/"
 
             # Move the backup file to the restore directory
-            \cp -rf -f "$TMP_PATH/Saved/" "$RESTORE_PATH"
+            \cp -rf -f "$TMP_PATH/" "$RESTORE_PATH"
 
             echo "Clean up the temporary directory."
             rm -rf "$TMP_PATH" "$TMP_SAVE_PATH"

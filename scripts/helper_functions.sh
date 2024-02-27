@@ -14,19 +14,6 @@ dirExists() {
     return "$return_val"
 }
 
-# Checks if a given path is a regular file
-# Returns 0 if the path is a regular file
-# Returns 1 if the path is not a regular file or does not exists and produces an output message
-fileExists() {
-    local path="$1"
-    local return_val=0
-    if ! [ -f "${path}" ]; then
-        echo "${path} does not exist."
-        return_val=1
-    fi
-    return "$return_val"
-}
-
 # Checks if a given path exists and is readable
 # Returns 0 if the path exists and is readable
 # Returns 1 if the path is not readable or does not exists and produces an output message

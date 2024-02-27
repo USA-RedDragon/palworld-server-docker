@@ -65,7 +65,7 @@ services:
          SERVER_NAME: "World of Pals"
          SERVER_DESCRIPTION: "palworld-server-docker by Thijs van Loef"
       volumes:
-         - ./palworld:/palworld/
+         - ./saves:/saves/
 ```
 
 As an alternative, you can copy the [.env.example](.env.example) file to a new file called **.env** file.
@@ -85,7 +85,7 @@ services:
       env_file:
          -  .env
       volumes:
-         - ./palworld:/palworld/
+         - ./saves:/saves/
 ```
 
 ### Docker Run
@@ -97,7 +97,7 @@ docker run -d \
     --name palworld-server \
     -p 8211:8211/udp \
     -p 27015:27015/udp \
-    -v ./palworld:/palworld/ \
+    -v ./saves:/saves/ \
     -e PORT=8211 \
     -e PLAYERS=16 \
     -e MULTITHREADING=true \
@@ -123,7 +123,7 @@ docker run -d \
     --name palworld-server \
     -p 8211:8211/udp \
     -p 27015:27015/udp \
-    -v ./palworld:/palworld/ \
+    -v ./saves:/saves/ \
     --env-file .env \
     --restart unless-stopped \
     --stop-timeout 30 \
@@ -155,7 +155,6 @@ It is highly recommended you set the following environment values before startin
 | SERVER_DESCRIPTION | Your server Description                                                                                                                                                                             |                | "string"                                                                                                   |
 | SERVER_PASSWORD    | Secure your community server with a password                                                                                                                                                        |                | "string"                                                                                                   |
 | ADMIN_PASSWORD     | Secure administration access in the server with a password                                                                                                                                          |                | "string"                                                                                                   |
-| UPDATE_ON_BOOT**   | Update/Install the server when the docker container starts (THIS HAS TO BE ENABLED THE FIRST TIME YOU RUN THE CONTAINER)                                                                            | true           | true/false                                                                                                 |
 | RCON_ENABLED***    | Enable RCON for the Palworld server                                                                                                                                                                 | true           | true/false                                                                                                 |
 | RCON_PORT          | RCON port to connect to                                                                                                                                                                             | 25575          | 1024-65535                                                                                                 |
 | QUERY_PORT         | Query port used to communicate with Steam servers                                                                                                                                                   | 27015          | 1024-65535                                                                                                 |
@@ -163,9 +162,6 @@ It is highly recommended you set the following environment values before startin
 | BACKUP_ENABLED | Enables automatic backups | true | true/false |
 | DELETE_OLD_BACKUPS | Delete backups after a certain number of days                                                                                                                                                       | false          | true/false                                                                                                 |
 | OLD_BACKUP_DAYS    | How many days to keep backups                                                                                                                                                                       | 30             | any positive integer                                                                                       |
-| AUTO_UPDATE_CRON_EXPRESSION  | Setting affects frequency of automatic updates. | 0 \* \* \* \* | Needs a Cron-Expression - See [Configuring Automatic Backups with Cron](#configuring-automatic-backups-with-cron) |
-| AUTO_UPDATE_ENABLED | Enables automatic updates | false | true/false |
-| AUTO_UPDATE_WARN_MINUTES | How long to wait to update the server, after the player were informed. (This will be ignored, if no Players are connected) | 30 | !0 |
 | AUTO_REBOOT_CRON_EXPRESSION  | Setting affects frequency of automatic updates. | 0 0 \* \* \* | Needs a Cron-Expression - See [Configuring Automatic Backups with Cron](#configuring-automatic-reboots-with-cron) |
 | AUTO_REBOOT_ENABLED | Enables automatic reboots | false | true/false |
 | AUTO_REBOOT_WARN_MINUTES | How long to wait to reboot the server, after the player were informed. | 5 | !0 |
@@ -228,7 +224,7 @@ To create a backup of the game's save at the current point in time, use the comm
 docker exec palworld-server backup
 ```
 
-This will create a backup at `/palworld/backups/`
+This will create a backup at `/backups/`
 
 The server will run a save before the backup if rcon is enabled.
 
@@ -249,18 +245,18 @@ The `RCON_ENABLED` environment variable must be set to `true` to use this comman
 
 ## Manually restore from a backup
 
-Locate the backup you want to restore in `/palworld/backups/` and decompress it.
+Locate the backup you want to restore in `/backups/` and decompress it.
 Need to stop the server before task.
 
 ```bash
 docker compose down
 ```
 
-Delete the old saved data folder located at `palworld/Pal/Saved/SaveGames/0/<old_hash_value>`.
+Delete the old saved data folder located at `saves/SaveGames/0/<old_hash_value>`.
 
-Copy the contents of the newly decompressed saved data folder `Saved/SaveGames/0/<new_hash_value>` to `palworld/Pal/Saved/SaveGames/0/<new_hash_value>`.
+Copy the contents of the newly decompressed saved data folder `SaveGames/0/<new_hash_value>` to `saves/SaveGames/0/<new_hash_value>`.
 
-Replace the DedicatedServerName inside `palworld/Pal/Saved/Config/LinuxServer/GameUserSettings.ini` with the new folder name.
+Replace the DedicatedServerName inside `saves/Config/LinuxServer/GameUserSettings.ini` with the new folder name.
 
 ```ini
 DedicatedServerName=<new_hash_value>  # Replace it with your folder name.
@@ -288,32 +284,6 @@ BACKUP_CRON_EXPRESSION is a cron expression, in a Cron-Expression you define an 
 
 Set BACKUP_CRON_EXPRESSION to change the default schedule.
 Example Usage: If BACKUP_CRON_EXPRESSION to `0 2 * * *`, the backup script will run every day at 2:00 AM.
-
-## Configuring Automatic Updates with Cron
-
-To be able to use automatic Updates with this Server the following environment variables **have** to be set to `true`:
-
-* RCON_ENABLED
-* UPDATE_ON_BOOT
-
-> [!IMPORTANT]
->
-> If docker restart is not set to policy `always` or `unless-stopped` then the server will shutdown and will need to be
-> manually restarted.
->
-> The example docker run command and docker compose file in [How to Use](#how-to-use) already use the needed policy
-
-Set AUTO_UPDATE_ENABLED enable or disable automatic updates (Default is disabled)
-
-AUTO_UPDATE_CRON_EXPRESSION is a cron expression, in a Cron-Expression you define an interval for when to run jobs.
-
-> [!TIP]
-> This image uses Supercronic for crons
-> see [supercronic](https://github.com/aptible/supercronic#crontab-format)
-> or
-> [Crontab Generator](https://crontab-generator.org).
-
-Set AUTO_UPDATE_CRON_EXPRESSION to change the default schedule.
 
 ## Configuring Automatic Reboots with Cron
 
@@ -418,7 +388,7 @@ For example:
 
 ### Manually
 
-When the server starts, a `PalWorldSettings.ini` file will be created in the following location: `<mount_folder>/Pal/Saved/Config/LinuxServer/PalWorldSettings.ini`
+When the server starts, a `PalWorldSettings.ini` file will be created in the following location: `saves/Config/LinuxServer/PalWorldSettings.ini`
 
 Please keep in mind that the ENV variables will always overwrite the changes made to `PalWorldSettings.ini`.
 

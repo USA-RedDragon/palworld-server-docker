@@ -28,13 +28,15 @@ jobs:
 
       - name: Run server
         run: |
-            mkdir -p ./palworld/backups && sudo chown -R 1000:1000 ./palworld
+            mkdir -p ./backups && sudo chown -R 1000:1000 ./backups
+            mkdir -p ./saves && sudo chown -R 1000:1000 ./saves
             docker run -d \
             --name palworld-server \
             -p 8211:8211/udp \
             -p 27015:27015/udp \
             -p 25575:25575/tcp \
-            -v ./palworld:/palworld/ \
+            -v ./backups:/backups/ \
+            -v ./saves:/saves/ \
             -e PORT=8211 \
             -e PLAYERS=16 \
             -e MULTITHREADING=true \
@@ -87,7 +89,7 @@ jobs:
       - name: Test the backup command functions
         run: |
           docker exec palworld-server backup
-          if [ ! -f ./palworld/backups/palworld-save-*.tar.gz ]; then
+          if [ ! -f ./backups/palworld-save-*.tar.gz ]; then
             echo "Backup file not found. Backup command may have failed."
             docker logs palworld-server
             exit 1
@@ -95,13 +97,13 @@ jobs:
 
       - name: Test if PalWorldSettings.ini is valid
         run: |
-          if ! grep -q "\[\/Script\/Pal.PalGameWorldSettings\]" ./palworld/Pal/Saved/Config/LinuxServer/PalWorldSettings.ini; then
+          if ! grep -q "\[\/Script\/Pal.PalGameWorldSettings\]" ./saves/Config/LinuxServer/PalWorldSettings.ini; then
             echo "Error: PalWorldSettings.ini is missing the required section [/Script/Pal.PalGameWorldSettings]."
             docker logs palworld-server
             exit 1
           fi
 
-          if ! grep -q "^OptionSettings=\(.*\)" ./palworld/Pal/Saved/Config/LinuxServer/PalWorldSettings.ini; then
+          if ! grep -q "^OptionSettings=\(.*\)" ./saves/Config/LinuxServer/PalWorldSettings.ini; then
             echo "Error: PalWorldSettings.ini is missing or has an invalid OptionSettings section."
             docker logs palworld-server
             exit 1
@@ -130,14 +132,16 @@ jobs:
 
       - name: Run server
         run: |
-            mkdir -p ./palworld/backups && sudo chown -R 1000:1000 ./palworld
+            mkdir -p ./backups && sudo chown -R 1000:1000 ./backups
+            mkdir -p ./saves && sudo chown -R 1000:1000 ./saves
             docker run -d \
             --name palworld-server \
             --platform linux/arm64 \
             -p 8211:8211/udp \
             -p 27015:27015/udp \
             -p 25575:25575/tcp \
-            -v ./palworld:/palworld/ \
+            -v ./backups:/backups/ \
+            -v ./saves:/saves/ \
             -e PORT=8211 \
             -e PLAYERS=16 \
             -e MULTITHREADING=true \
@@ -190,7 +194,7 @@ jobs:
       - name: Test the backup command functions
         run: |
           docker exec palworld-server backup
-          if [ ! -f ./palworld/backups/palworld-save-*.tar.gz ]; then
+          if [ ! -f ./backups/palworld-save-*.tar.gz ]; then
             echo "Backup file not found. Backup command may have failed."
             docker logs palworld-server
             exit 1
@@ -198,13 +202,13 @@ jobs:
 
       - name: Test if PalWorldSettings.ini is valid
         run: |
-          if ! grep -q "\[\/Script\/Pal.PalGameWorldSettings\]" ./palworld/Pal/Saved/Config/LinuxServer/PalWorldSettings.ini; then
+          if ! grep -q "\[\/Script\/Pal.PalGameWorldSettings\]" ./saves/Config/LinuxServer/PalWorldSettings.ini; then
             echo "Error: PalWorldSettings.ini is missing the required section [/Script/Pal.PalGameWorldSettings]."
             docker logs palworld-server
             exit 1
           fi
 
-          if ! grep -q "^OptionSettings=\(.*\)" ./palworld/Pal/Saved/Config/LinuxServer/PalWorldSettings.ini; then
+          if ! grep -q "^OptionSettings=\(.*\)" ./saves/Config/LinuxServer/PalWorldSettings.ini; then
             echo "Error: PalWorldSettings.ini is missing or has an invalid OptionSettings section."
             docker logs palworld-server
             exit 1

@@ -2,9 +2,8 @@
 # shellcheck source=/dev/null
 source "/home/steam/server/helper_functions.sh"
 
-dirExists "/palworld" || exit
-isWritable "/palworld" || exit
-isExecutable "/palworld" || exit
+isWritable "/saves" || exit
+isExecutable "/saves" || exit
 
 cd /palworld || exit
 
@@ -20,12 +19,6 @@ if [ "$architecture" == "arm64" ] && [ "$kernel_page_size" != "4096" ]; then
     exit 1
 fi
 
-if [ "${UPDATE_ON_BOOT,,}" = true ]; then
-    printf "\e[0;32m%s\e[0m\n" "*****STARTING INSTALL/UPDATE*****"
-
-    /home/steam/steamcmd/steamcmd.sh +@sSteamCmdForcePlatformType linux +@sSteamCmdForcePlatformBitness 64 +force_install_dir "/palworld" +login anonymous +app_update 2394010 validate +quit
-fi
-
 # Check if the architecture is arm64
 if [ "$architecture" == "arm64" ]; then
     # create an arm64 version of ./PalServer.sh
@@ -38,10 +31,6 @@ else
     STARTCOMMAND=("./PalServer.sh")
 fi
 
-if ! fileExists "${STARTCOMMAND[0]}"; then
-    echo "Try restarting with UPDATE_ON_BOOT=true"
-    exit 1
-fi
 isReadable "${STARTCOMMAND[0]}" || exit
 isExecutable "${STARTCOMMAND[0]}" || exit
 
@@ -66,7 +55,7 @@ if [ "${DISABLE_GENERATE_SETTINGS,,}" = true ]; then
   printf "\e[0;32m%s\e[0m\n" "***Env vars will not be applied due to DISABLE_GENERATE_SETTINGS being set to TRUE!***"
 
   # shellcheck disable=SC2143
-  if [ ! "$(grep -s '[^[:space:]]' /palworld/Pal/Saved/Config/LinuxServer/PalWorldSettings.ini)" ]; then
+  if [ ! "$(grep -s '[^[:space:]]' /saves/Config/LinuxServer/PalWorldSettings.ini)" ]; then
 
       printf "\e[0;32m%s\e[0m\n" "*****GENERATING CONFIG*****"
 
@@ -79,7 +68,7 @@ if [ "${DISABLE_GENERATE_SETTINGS,,}" = true ]; then
 
       # Wait for shutdown
       sleep 5
-      cp /palworld/DefaultPalWorldSettings.ini /palworld/Pal/Saved/Config/LinuxServer/PalWorldSettings.ini
+      cp /palworld/DefaultPalWorldSettings.ini /saves/Config/LinuxServer/PalWorldSettings.ini
   fi
 else
   printf "\e[0;32m%s\e[0m\n" "*****GENERATING CONFIG*****"
@@ -97,13 +86,6 @@ if [ "${BACKUP_ENABLED,,}" = true ]; then
     supercronic -quiet -test "/home/steam/server/crontab" || exit
 fi
 
-if [ "${AUTO_UPDATE_ENABLED,,}" = true ] && [ "${UPDATE_ON_BOOT}" = true ]; then
-    echo "AUTO_UPDATE_ENABLED=${AUTO_UPDATE_ENABLED,,}"
-    echo "Adding cronjob for auto updating"
-    echo "$AUTO_UPDATE_CRON_EXPRESSION bash /usr/local/bin/update" >> "/home/steam/server/crontab"
-    supercronic -quiet -test "/home/steam/server/crontab" || exit
-fi
-
 if [ "${AUTO_REBOOT_ENABLED,,}" = true ] && [ "${RCON_ENABLED,,}" = true ]; then
     echo "AUTO_REBOOT_ENABLED=${AUTO_REBOOT_ENABLED,,}"
     echo "Adding cronjob for auto rebooting"
@@ -111,8 +93,7 @@ if [ "${AUTO_REBOOT_ENABLED,,}" = true ] && [ "${RCON_ENABLED,,}" = true ]; then
     supercronic -quiet -test "/home/steam/server/crontab" || exit
 fi
 
-if { [ "${AUTO_UPDATE_ENABLED,,}" = true ] && [ "${UPDATE_ON_BOOT,,}" = true ]; } || [ "${BACKUP_ENABLED,,}" = true ] || \
-    [ "${AUTO_REBOOT_ENABLED,,}" = true ]; then
+if [ "${BACKUP_ENABLED,,}" = true ] || [ "${AUTO_REBOOT_ENABLED,,}" = true ]; then
     supercronic "/home/steam/server/crontab" &
     echo "Cronjobs started"
 else

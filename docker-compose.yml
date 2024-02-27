@@ -21,4 +21,4 @@ services:
       SERVER_NAME: "World of Pals"
       SERVER_DESCRIPTION: "palworld-server-docker by Thijs van Loef"
     volumes:
-      - ./palworld:/palworld/
+      - ./saves:/saves/

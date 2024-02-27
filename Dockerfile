@@ -35,12 +35,15 @@ FROM ghcr.io/usa-reddragon/steamcmd:main@sha256:334010d656a226879adc3f0099a5ebcb
 
 USER root
 
+# renovate: datasource=github-releases extractVersion=^build-(?<version>.*)$ depName=USA-RedDragon/palworld-server
+ARG PALWORLD_VERSION=13559230
+
 # renovate: datasource=repology versioning=deb depName=debian_12/procps
-ENV PROCPS_VERSION=2:4.0.2-3
+ARG PROCPS_VERSION=2:4.0.2-3
 # renovate: datasource=repology versioning=deb depName=debian_12/gettext-base
-ENV GETTEXT_BASE_VERSION=0.21-12
+ARG GETTEXT_BASE_VERSION=0.21-12
 # renovate: datasource=repology versioning=deb depName=debian_12/xdg-user-dirs
-ENV XDG_USER_DIRS_VERSION=0.18-1
+ARG XDG_USER_DIRS_VERSION=0.18-1
 
 # update and install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -56,6 +59,10 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 COPY --from=rcon-cli_builder /build/gorcon /usr/bin/rcon-cli
 COPY --from=supercronic_builder /build/supercronic /usr/local/bin/supercronic
 
+RUN mkdir -p /palworld /backups \
+    && curl -fSsL https://github.com/USA-RedDragon/palworld-server/releases/download/build-${PALWORLD_VERSION}/palworld-server.tar.gz | tar -xz -C /palworld \
+    && ln -s /palworld/Pal/Saved /saves
+
 ENV PORT= \
     PLAYERS= \
     MULTITHREADING=false \
@@ -65,7 +72,6 @@ ENV PORT= \
     SERVER_PASSWORD= \
     SERVER_NAME= \
     ADMIN_PASSWORD= \
-    UPDATE_ON_BOOT=true \
     RCON_ENABLED=true \
     RCON_PORT=25575 \
     QUERY_PORT=27015 \
@@ -75,9 +81,6 @@ ENV PORT= \
     DELETE_OLD_BACKUPS=false \
     OLD_BACKUP_DAYS=30 \
     BACKUP_CRON_EXPRESSION="0 0 * * *" \
-    AUTO_UPDATE_ENABLED=false \
-    AUTO_UPDATE_CRON_EXPRESSION="0 * * * *" \
-    AUTO_UPDATE_WARN_MINUTES=30 \
     AUTO_REBOOT_ENABLED=false \
     AUTO_REBOOT_WARN_MINUTES=5 \
     AUTO_REBOOT_EVEN_IF_PLAYERS_ONLINE=false \
@@ -87,13 +90,11 @@ COPY ./scripts /home/steam/server/
 
 RUN chmod +x /home/steam/server/*.sh && \
     mv /home/steam/server/backup.sh /usr/local/bin/backup && \
-    mv /home/steam/server/update.sh /usr/local/bin/update && \
     mv /home/steam/server/restore.sh /usr/local/bin/restore
 
 WORKDIR /home/steam/server
 
-RUN mkdir -p /palworld/backups \
-    && chown -R steam:steam /home/steam /palworld
+RUN chown -R steam:steam /home/steam /palworld /saves /backups
 
 USER steam:steam
 

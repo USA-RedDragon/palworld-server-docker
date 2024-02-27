@@ -5,11 +5,11 @@ if [ "${RCON_ENABLED,,}" = true ]; then
 fi
 
 DATE=$(date +"%Y-%m-%d_%H-%M-%S")
-FILE_PATH="/palworld/backups/palworld-save-${DATE}.tar.gz"
-cd /palworld/Pal/ || exit
+FILE_PATH="/backups/palworld-save-${DATE}.tar.gz"
+cd /saves || exit
 
 echo "Creating backup"
-tar -zcf "$FILE_PATH" "Saved/"
+tar -zcf "$FILE_PATH" .
 
 if [ "$(id -u)" -eq 0 ]; then
     chown steam:steam "$FILE_PATH"
@@ -23,7 +23,7 @@ if [ "${DELETE_OLD_BACKUPS,,}" = true ]; then
         echo "Unable to delete old backups, OLD_BACKUP_DAYS is empty."
     elif [[ "${OLD_BACKUP_DAYS}" =~ ^[0-9]+$ ]]; then
         echo "Removing backups older than ${OLD_BACKUP_DAYS} days"
-        find /palworld/backups/ -mindepth 1 -maxdepth 1 -mtime "+${OLD_BACKUP_DAYS}" -type f -name 'palworld-save-*.tar.gz' -print -delete
+        find /backups/ -mindepth 1 -maxdepth 1 -mtime "+${OLD_BACKUP_DAYS}" -type f -name 'palworld-save-*.tar.gz' -print -delete
     else
         echo "Unable to delete old backups, OLD_BACKUP_DAYS is not an integer. OLD_BACKUP_DAYS=${OLD_BACKUP_DAYS}"
     fi
