@@ -4,6 +4,12 @@
 > This is a fork which has a bit stricter versioning enabled with [Renovate](https://github.com/apps/renovate) managing dependencies
 > and modified for my own use. If you've stumbled upon this repository, you probably want the upstream repository
 > which can be found at <https://github.com/thijsvanloef/palworld-server-docker>.
+>
+> This fork also disables Discord messages, always runs as user `steam` (PID/GID `1000`), and disables auto updates.
+> Instead, the server is packaged into this image and only updates to the image change the Palworld server version.
+> This is accomplished by <https://github.com/USA-RedDragon/palworld-server> containing an hourly CI job to check
+> for new Palworld build IDs and publishing the relevant files to GitHub Releases. This avoids issues where Palworld
+> releases an update that breaks the way the Docker image expects it to behave, like as seen in the v1.0.5 update.
 
 ---
 
