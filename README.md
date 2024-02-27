@@ -10,6 +10,9 @@
 > This fork also disables Discord messages, always runs as user `steam` (PID/GID `1000`), and disables auto updates.
 > Additionally, it also does not require the game files be stored in a Docker volume, instead requiring only saves
 > to be stored. This fork uses an ARM64 + AMD64 unified SteamCMD located at <https://github.com/USA-RedDragon/steamcmd/>
+>
+> ### Persistence
+> This fork places saves at `/saves` and backups at `/backups` in the container.
 > 
 > ### Server versions
 > The Palworld server is packaged into this image and only updates to the image change the Palworld server version.
