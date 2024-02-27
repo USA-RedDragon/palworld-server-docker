@@ -50,7 +50,7 @@ if [ "${MULTITHREADING,,}" = true ]; then
     STARTCOMMAND+=("-useperfthreads" "-NoAsyncLoadingThread" "-UseMultithreadForDS")
 fi
 
-if [ "${RCON_ENABLED,,}" = true ] && [ -n "${RCON_PORT}"]; then
+if [ "${RCON_ENABLED,,}" = true ] && [ -n "${RCON_PORT}" ]; then
     STARTCOMMAND+=("-rconport=${RCON_PORT}")
 fi
 
