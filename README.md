@@ -14,6 +14,12 @@
 > Additionally, it also does not require the game files be stored in a Docker volume, instead requiring only saves
 > to be stored. This fork uses an ARM64 + AMD64 unified SteamCMD located at <https://github.com/USA-RedDragon/steamcmd/>
 >
+> ### Player shutdown warning
+>
+> By default this fork will wait up to 5 minutes for players to exit before terminating. This includes when Kubernetes
+> terminates the pod, when you run `docker compose down`, `docker stop`, or when using automatic reboots (daily reboots
+> in the Helm chart). During this time it will broadcast via rcon once a minute to warn players that a shutdown is imminent.
+>
 > ### Persistence
 >
 > This fork places saves at `/saves` and backups at `/backups` in the container.
