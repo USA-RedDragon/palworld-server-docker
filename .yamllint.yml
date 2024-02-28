@@ -1,23 +1,20 @@
----
-
 yaml-files:
   - '*.yaml'
   - '*.yml'
-  - '.yamllint'
 
 rules:
   anchors: enable
   braces: enable
-  brackets: enable
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
   colons: enable
   commas: enable
   comments:
-    level: warning
-  comments-indentation:
-    level: warning
+    min-spaces-from-content: 1
+  comments-indentation: enable
   document-end: disable
-  document-start:
-    level: warning
+  document-start: disable
   empty-lines: enable
   empty-values: disable
   float-values: disable
@@ -32,7 +29,4 @@ rules:
   quoted-strings: disable
   trailing-spaces: enable
   truthy:
-    level: warning
-
-ignore:
-  - charts/palworld/templates/*.yaml
+    check-keys: false
