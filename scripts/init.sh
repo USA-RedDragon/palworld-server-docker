@@ -2,13 +2,7 @@
 
 # shellcheck disable=SC2317
 term_handler() {
-    if [ "${RCON_ENABLED,,}" = true ]; then
-        rcon-cli save
-        rcon-cli "shutdown 1"
-    else # Does not save
-        kill -SIGTERM "$(pidof PalServer-Linux-Test)"
-    fi
-
+    shutdown
     tail --pid="$killpid" -f 2>/dev/null
 }
 
