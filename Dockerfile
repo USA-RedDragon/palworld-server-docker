@@ -82,15 +82,16 @@ ENV PORT= \
     OLD_BACKUP_DAYS=30 \
     BACKUP_CRON_EXPRESSION="0 0 * * *" \
     AUTO_REBOOT_ENABLED=false \
-    AUTO_REBOOT_WARN_MINUTES=5 \
-    AUTO_REBOOT_EVEN_IF_PLAYERS_ONLINE=false \
-    AUTO_REBOOT_CRON_EXPRESSION="0 0 * * *"
+    AUTO_REBOOT_CRON_EXPRESSION="0 0 * * *" \
+    SHUTDOWN_WARN_SECONDS=300 \
+    SHUTDOWN_EVEN_IF_PLAYERS_ONLINE=false
 
 COPY ./scripts /home/steam/server/
 
 RUN chmod +x /home/steam/server/*.sh && \
     mv /home/steam/server/backup.sh /usr/local/bin/backup && \
-    mv /home/steam/server/restore.sh /usr/local/bin/restore
+    mv /home/steam/server/restore.sh /usr/local/bin/restore && \
+    mv /home/steam/server/shutdown.sh /usr/local/bin/shutdown
 
 WORKDIR /home/steam/server
 

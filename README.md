@@ -1,24 +1,30 @@
 # Palworld Dedicated Server Docker
 
 > [!IMPORTANT]
+>
 > ## This is a fork
+>
 > This is a fork which has stricter dependency verison pinning enabled with [Renovate](https://github.com/apps/renovate)
 > managing them. If you've stumbled upon this repository, you probably want the upstream repository which can be
 > found at <https://github.com/thijsvanloef/palworld-server-docker>.
 >
 > ## How is it different?
+>
 > This fork also disables Discord messages, always runs as user `steam` (PID/GID `1000`), and disables auto updates.
 > Additionally, it also does not require the game files be stored in a Docker volume, instead requiring only saves
 > to be stored. This fork uses an ARM64 + AMD64 unified SteamCMD located at <https://github.com/USA-RedDragon/steamcmd/>
 >
 > ### Persistence
+>
 > This fork places saves at `/saves` and backups at `/backups` in the container.
 >
 > ### Chart changes
+>
 > A fork of the Helm chart is hosted at <https://charts.mcswain.dev/charts/palworld/>. This fork takes advantage
 > of the persistence changes and uses a readiness and liveness probe by default to check the health of your deployment.
-> 
+>
 > ### Server versions
+>
 > The Palworld server is packaged into this image and only updates to the image change the Palworld server version.
 > This is accomplished by <https://github.com/USA-RedDragon/palworld-server> containing an hourly CI job to check
 > for new Palworld build IDs and publishing the relevant files to GitHub Releases. This avoids issues where Palworld
@@ -183,9 +189,10 @@ It is highly recommended you set the following environment values before startin
 | OLD_BACKUP_DAYS    | How many days to keep backups                                                                                                                                                                       | 30             | any positive integer                                                                                       |
 | AUTO_REBOOT_CRON_EXPRESSION  | Setting affects frequency of automatic updates. | 0 0 \* \* \* | Needs a Cron-Expression - See [Configuring Automatic Backups with Cron](#configuring-automatic-reboots-with-cron) |
 | AUTO_REBOOT_ENABLED | Enables automatic reboots | false | true/false |
-| AUTO_REBOOT_WARN_MINUTES | How long to wait to reboot the server, after the player were informed. | 5 | !0 |
-| AUTO_REBOOT_EVEN_IF_PLAYERS_ONLINE | Restart the Server even if there are players online. | false | true/false |
+| SHUTDOWN_WARN_SECONDS | How long to wait to reboot the server, after the player were informed. | 300 | integer |
+| SHUTDOWN_EVEN_IF_PLAYERS_ONLINE | Restart the Server even if there are players online. | false | true/false |
 | DISABLE_GENERATE_SETTINGS | Whether to automatically generate the PalWorldSettings.ini | false | true/false |
+| BACKUP_BEFORE_EXIT | Backup the world data before the server stops | true | true/false |
 
 *highly recommended to set
 

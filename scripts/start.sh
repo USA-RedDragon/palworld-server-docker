@@ -93,7 +93,7 @@ fi
 if [ "${AUTO_REBOOT_ENABLED,,}" = true ] && [ "${RCON_ENABLED,,}" = true ]; then
     echo "AUTO_REBOOT_ENABLED=${AUTO_REBOOT_ENABLED,,}"
     echo "Adding cronjob for auto rebooting"
-    echo "$AUTO_REBOOT_CRON_EXPRESSION bash /home/steam/server/auto_reboot.sh" >> "/home/steam/server/crontab"
+    echo "$AUTO_REBOOT_CRON_EXPRESSION bash /home/steam/server/shutdown.sh autoreboot" >> "/home/steam/server/crontab"
     supercronic -quiet -test "/home/steam/server/crontab" || exit
 fi
 
