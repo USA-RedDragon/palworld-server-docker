@@ -41,8 +41,24 @@ if [ "${RCON_ENABLED,,}" = true ] && [ "${SHUTDOWN_EVEN_IF_PLAYERS_ONLINE,,}" !=
   if [[ "${SHUTDOWN_WARN_SECONDS}" =~ ^[0-9]+$ ]]; then
     MINS="$((SHUTDOWN_WARN_SECONDS / 60))"
     for ((i = "${MINS}" ; i > 0 ; i--)); do
+      players_count=$(get_player_count)
+      if [ "${players_count}" -eq 0 ]; then
+        echo "There are no more players online. Shutting down immediately."
+        terminate
+        exit 0
+      fi
+
       rcon-cli -c /home/steam/server/rcon.yaml "broadcast The_Server_will_${PARAM}_in_${i}_Minutes"
-      sleep "1m"
+      sleep "30s"
+
+      players_count=$(get_player_count)
+      if [ "${players_count}" -eq 0 ]; then
+        echo "There are no more players online. Shutting down immediately."
+        terminate
+        exit 0
+      fi
+
+      sleep "30s"
     done
   elif [ "${AUTOREBOOT}" = true ]; then
     echo "Unable to auto reboot, SHUTDOWN_WARN_SECONDS is not an integer: ${SHUTDOWN_WARN_SECONDS}"
