@@ -31,7 +31,7 @@ RUN wget -q https://github.com/aptible/supercronic/archive/refs/tags/${SUPERCRON
     && rm -rf supercronic-${SUPERCRONIC_VERSION##v} \
     && go build -v .
 
-FROM ghcr.io/usa-reddragon/steamcmd:main@sha256:76249880012bbf61cf83387ae2362493e4cc0608353e6ed704027b768f2a5f8f
+FROM ghcr.io/usa-reddragon/steamcmd:main@sha256:2dc990c41d83ae097e78e0b8017c005177525b17a55f8111e2f8cd5898d81ad5
 
 USER root
 
