@@ -9,6 +9,9 @@ FILE_PATH="/backups/palworld-save-${DATE}.tar.gz"
 cd /saves || exit
 
 echo "Creating backup"
+if [ "${RCON_ENABLED,,}" = true ]; then
+    rcon-cli -c /home/steam/server/rcon.yaml "broadcast Server_backup_starting"
+fi
 tar -zcf "$FILE_PATH" .
 
 if [ "$(id -u)" -eq 0 ]; then
@@ -16,9 +19,11 @@ if [ "$(id -u)" -eq 0 ]; then
 fi
 
 echo "Backup created at ${FILE_PATH}"
+if [ "${RCON_ENABLED,,}" = true ]; then
+    rcon-cli -c /home/steam/server/rcon.yaml "broadcast Server_backup_completed"
+fi
 
 if [ "${DELETE_OLD_BACKUPS,,}" = true ]; then
-
     if [ -z "${OLD_BACKUP_DAYS}" ]; then
         echo "Unable to delete old backups, OLD_BACKUP_DAYS is empty."
     elif [[ "${OLD_BACKUP_DAYS}" =~ ^[0-9]+$ ]]; then
