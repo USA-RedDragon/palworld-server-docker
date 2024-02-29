@@ -34,7 +34,7 @@
 > The Palworld server is packaged into this image and only updates to the image change the Palworld server version.
 > This is accomplished by <https://github.com/USA-RedDragon/palworld-server> containing an hourly CI job to check
 > for new Palworld build IDs and publishing the relevant files to GitHub Releases. This avoids issues where Palworld
-> releases an update that breaks the way the Docker image expects it to behave, like as seen in the v1.0.5 update.
+> releases an update that breaks the way the Docker image expects it to behave, like as seen in the v0.1.5.0 update.
 
 ---
 
