@@ -1,4 +1,4 @@
-FROM golang:1.22.0-alpine as rcon-cli_builder
+FROM golang:1.22.1-alpine as rcon-cli_builder
 
 # RCON: Latest releases available at https://github.com/gorcon/rcon-cli/releases
 # renovate: datasource=github-tags depName=gorcon/rcon-cli
@@ -14,7 +14,7 @@ RUN wget -q https://github.com/gorcon/rcon-cli/archive/refs/tags/${RCON_VERSION}
     && rm -rf rcon-cli-${RCON_VERSION##v} \
     && go build -v ./cmd/gorcon
 
-FROM golang:1.22.0-alpine as supercronic_builder
+FROM golang:1.22.1-alpine as supercronic_builder
 
 # SUPERCRONIC: Latest releases available at https://github.com/aptible/supercronic/releases
 # renovate: datasource=github-tags depName=aptible/supercronic
