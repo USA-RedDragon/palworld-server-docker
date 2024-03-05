@@ -148,6 +148,8 @@ jobs:
             -p 25575:25575/tcp \
             -v ./backups:/backups/ \
             -v ./saves:/saves/ \
+            -e BOX86_LOG=3 \
+            -e BOX64_LOG=3 \
             -e PORT=8211 \
             -e PLAYERS=16 \
             -e MULTITHREADING=true \
