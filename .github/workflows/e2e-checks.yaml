@@ -85,7 +85,7 @@ jobs:
       - name: Upload logs
         if: steps.wait-start.outcome == 'failure'
         id: upload-logs-wait-start
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: logs
           path: logs.txt
@@ -106,7 +106,7 @@ jobs:
       - name: Upload logs
         if: steps.test-server.outcome == 'failure'
         id: upload-logs-test-server
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: logs
           path: logs.txt
@@ -145,7 +145,7 @@ jobs:
       - name: Upload logs
         id: upload-logs-test-ports
         if: steps.test-ports.outcome == 'failure'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: logs
           path: logs.txt
@@ -166,7 +166,7 @@ jobs:
       - name: Upload logs
         if: steps.test-backup.outcome == 'failure'
         id: upload-logs-test-backup
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: logs
           path: logs.txt
@@ -193,7 +193,7 @@ jobs:
       - name: Upload logs
         if: steps.test-settings.outcome == 'failure'
         id: upload-logs-test-settings
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: logs
           path: logs.txt
