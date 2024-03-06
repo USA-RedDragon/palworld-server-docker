@@ -1,0 +1,280 @@
+name: E2E Checks
+
+on:
+  workflow_call:
+    inputs:
+      platform:
+        type: string
+        description: 'The platform to run the checks on'
+        required: true
+
+jobs:
+  e2e-test:
+    name: Docker - Test ${{ inputs.platform }}
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and export to Docker
+        uses: docker/build-push-action@v5
+        with:
+          file: ./Dockerfile
+          load: true
+          tags: ${{ github.run_id }}
+          platforms: linux/${{ inputs.platform }}
+
+      - name: Run server
+        run: |
+            mkdir -p ./backups && sudo chown -R 1000:1000 ./backups
+            mkdir -p ./saves && sudo chown -R 1000:1000 ./saves
+            docker run -d \
+            --name palworld-server \
+            --platform linux/${{ inputs.platform }} \
+            -p 8211:8211/udp \
+            -p 27015:27015/udp \
+            -p 25575:25575/tcp \
+            -v ./backups:/backups/ \
+            -v ./saves:/saves/ \
+            -e PORT=8211 \
+            -e PLAYERS=16 \
+            -e MULTITHREADING=true \
+            -e RCON_ENABLED=true \
+            -e RCON_PORT=25575 \
+            -e TZ=UTC \
+            -e ADMIN_PASSWORD="adminPasswordHere" \
+            -e SERVER_PASSWORD="worldofpals" \
+            -e COMMUNITY=false \
+            -e SERVER_NAME="World of Pals" \
+            -e SERVER_DESCRIPTION="palworld-server-docker by Thijs van Loef" \
+            --restart unless-stopped \
+            --stop-timeout 30 \
+            ${{ github.run_id }}
+
+      - name: Wait for server to start
+        id: wait-start
+        continue-on-error: true
+        run: |
+            TIMEOUT_SECONDS=400
+            START_TIME=$(date +%s)
+
+            while ! docker logs palworld-server 2>&1 | grep -q "Setting breakpad minidump AppID"; do
+              CURRENT_TIME=$(date +%s)
+              ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
+
+              if [ $ELAPSED_TIME -gt $TIMEOUT_SECONDS ]; then
+                echo "Timeout reached. Server failed to start within $TIMEOUT_SECONDS seconds." 1>&2
+                echo "error=Timeout reached. Server failed to start within $TIMEOUT_SECONDS seconds." >> $GITHUB_OUTPUT
+                docker logs palworld-server 1>logs.txt 2>&1
+                exit 1  # or handle the failure accordingly
+              fi
+
+              echo "Waiting for server to start..."
+              sleep 5
+            done
+
+      - name: Upload logs
+        if: steps.wait-start.outcome == 'failure'
+        id: upload-logs-wait-start
+        uses: actions/upload-artifact@v2
+        with:
+          name: logs
+          path: logs.txt
+
+      - name: Test if server is up and running
+        id: test-server
+        if: steps.wait-start.outcome == 'success'
+        continue-on-error: true
+        run: |
+            sleep 100
+            if ! docker exec palworld-server rcon-cli Info | grep -q "Welcome to Pal Server"; then
+              echo "Server may not have started successfully."
+              echo "error=Server may not have started successfully." >> $GITHUB_OUTPUT
+              docker logs palworld-server 1>logs.txt 2>&1
+              exit 1
+            fi
+
+      - name: Upload logs
+        if: steps.test-server.outcome == 'failure'
+        id: upload-logs-test-server
+        uses: actions/upload-artifact@v2
+        with:
+          name: logs
+          path: logs.txt
+
+      - name: Test if port 8211, 27015 and 25575 are listening
+        id: test-ports
+        if: steps.test-server.outcome == 'success'
+        continue-on-error: true
+        run: |
+            check() {
+              PROTOCOL=${1:-}
+              PORT=${2:-}
+
+              UDPARG=""
+              if [ "${PROTOCOL}" = "udp" ]; then
+                UDPARG="-u"
+              fi
+
+              if ! nc -z ${UDPARG} -v 127.0.0.1 ${PORT}; then
+                echo "Port ${PORT} is not listening."
+                docker logs palworld-server 1>logs.txt 2>&1
+                return 1
+              fi
+            }
+            doExit() {
+              cat error.txt
+              echo "error<<xxEOFxx" >> $GITHUB_OUTPUT
+              echo "$(cat error.txt)" >> $GITHUB_OUTPUT
+              echo "xxEOFxx" >> $GITHUB_OUTPUT
+              exit 1
+            }
+            check udp  8211 > error.txt || doExit
+            check udp 27015 > error.txt || doExit
+            check tcp 25575 > error.txt || doExit
+
+      - name: Upload logs
+        id: upload-logs-test-ports
+        if: steps.test-ports.outcome == 'failure'
+        uses: actions/upload-artifact@v2
+        with:
+          name: logs
+          path: logs.txt
+
+      - name: Test the backup command functions
+        if: steps.test-ports.outcome == 'success'
+        id: test-backup
+        continue-on-error: true
+        run: |
+          docker exec palworld-server backup
+          if [ ! -f ./backups/palworld-save-*.tar.gz ]; then
+            echo "Backup file not found. Backup command may have failed."
+            echo "error=Backup file not found. Backup command may have failed." >> $GITHUB_OUTPUT
+            docker logs palworld-server 1>logs.txt 2>&1
+            exit 1
+          fi
+
+      - name: Upload logs
+        if: steps.test-backup.outcome == 'failure'
+        id: upload-logs-test-backup
+        uses: actions/upload-artifact@v2
+        with:
+          name: logs
+          path: logs.txt
+
+      - name: Test if PalWorldSettings.ini is valid
+        id: test-settings
+        if: steps.test-backup.outcome == 'success'
+        continue-on-error: true
+        run: |
+          if ! grep -q "\[\/Script\/Pal.PalGameWorldSettings\]" ./saves/Config/LinuxServer/PalWorldSettings.ini; then
+            echo "Error: PalWorldSettings.ini is missing the required section [/Script/Pal.PalGameWorldSettings]."
+            echo "error=PalWorldSettings.ini is missing the required section [/Script/Pal.PalGameWorldSettings]." >> $GITHUB_OUTPUT
+            docker logs palworld-server 1>logs.txt 2>&1
+            exit 1
+          fi
+
+          if ! grep -q "^OptionSettings=\(.*\)" ./saves/Config/LinuxServer/PalWorldSettings.ini; then
+            echo "Error: PalWorldSettings.ini is missing or has an invalid OptionSettings section."
+            echo "error=PalWorldSettings.ini is missing or has an invalid OptionSettings section." >> $GITHUB_OUTPUT
+            docker logs palworld-server 1>logs.txt 2>&1
+            exit 1
+          fi
+
+      - name: Upload logs
+        if: steps.test-settings.outcome == 'failure'
+        id: upload-logs-test-settings
+        uses: actions/upload-artifact@v2
+        with:
+          name: logs
+          path: logs.txt
+
+      - uses: actions/github-script@v7
+        id: github-script
+        env:
+          ERROR_WAIT_START: "${{ steps.wait-start.outputs.error }}"
+          LOG_WAIT_START: "${{ steps.upload-logs-wait-start.outputs.artifact-url }}"
+          ERROR_TEST_SERVER: "${{ steps.test-server.outputs.error }}"
+          LOG_TEST_SERVER: "${{ steps.upload-logs-test-server.outputs.artifact-url }}"
+          ERROR_TEST_PORTS: "${{ steps.test-ports.outputs.error }}"
+          LOG_TEST_PORTS: "${{ steps.upload-logs-test-ports.outputs.artifact-url }}"
+          ERROR_TEST_BACKUP: "${{ steps.test-backup.outputs.error }}"
+          LOG_TEST_BACKUP: "${{ steps.upload-logs-test-backup.outputs.artifact-url }}"
+          ERROR_TEST_SETTINGS: "${{ steps.test-settings.outputs.error }}"
+          LOG_TEST_SETTINGS: "${{ steps.upload-logs-test-settings.outputs.artifact-url }}"
+        with:
+          result-encoding: string
+          script: |
+            let comment = `## End-to-end Checks (${{ inputs.platform }})\n\n`;
+            let shouldFail = false;
+
+            if ("${{ steps.wait-start.outcome }}" == "failure") {
+              comment += `\n#### ❌ Wait for server start failed\n> \`${process.env.ERROR_WAIT_START}\`\n`;
+              comment += `\n[Container Logs](${process.env.LOG_WAIT_START})\n`;
+              shouldFail = true;
+            } else {
+              if ("${{ steps.test-server.outcome }}" == "success") {
+                comment += `\n#### ✅ Server started successfully`;
+                if ("${{ steps.test-ports.outcome }}" == "success") {
+                  comment += `\n#### ✅ Server ports are listening`;
+                  if ("${{ steps.test-backup.outcome }}" == "success") {
+                    comment += `\n#### ✅ Backup command functions`;
+                    if ("${{ steps.test-settings.outcome }}" == "success") {
+                      comment += `\n#### ✅ \`PalWorldSettings.ini\` is valid`;
+                    } else {
+                      comment += `\n#### ❌ \`PalWorldSettings.ini\` is not valid\n>\`${process.env.ERROR_TEST_SETTINGS}\`\n`;
+                      comment += `\n[Container Logs](${process.env.LOG_TEST_SETTINGS})\n`;
+                      shouldFail = true;
+                    }
+                  } else {
+                    comment += `\n#### ❌ Backup command failed\n> \`${process.env.ERROR_TEST_BACKUP}\`\n`;
+                    comment += `\n[Container Logs](${process.env.LOG_TEST_BACKUP})\n`;
+                    shouldFail = true;
+                  }
+                } else {
+                  comment += `\n#### ❌ Server ports are not listening\n> \`${process.env.ERROR_TEST_PORTS}\`\n`;
+                  comment += `\n[Container Logs](${process.env.LOG_TEST_PORTS})\n`;
+                  shouldFail = true;
+                }
+              } else {
+                comment += `\n#### ❌ Server did not start\n> \`${process.env.ERROR_TEST_SERVER}\`\n`;
+                comment += `\n[Container Logs](${process.env.LOG_TEST_SERVER})\n`;
+                shouldFail = true;
+              }
+            }
+
+            comment += `\n\n---\nThis comment is automatically generated by the GitHub Actions workflow. It will automatically update when the workflow is ran again.\n`;
+
+            core.setOutput("fail", shouldFail);
+
+            return comment;
+
+      - name: Find Comment
+        uses: peter-evans/find-comment@v3
+        id: fc
+        with:
+          comment-author: github-actions[bot]
+          issue-number: ${{ github.event.pull_request.number }}
+          body-includes: '## End-to-end Checks (${{ inputs.platform }})'
+
+      - name: Create comment
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          edit-mode: replace
+          issue-number: ${{ github.event.pull_request.number }}
+          body: ${{ steps.github-script.outputs.result }}
+
+      - name: Fail if needed
+        if: steps.github-script.outputs.fail == 'true'
+        run: exit 1
