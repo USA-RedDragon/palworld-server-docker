@@ -43,6 +43,8 @@ jobs:
             -p 8211:8211/udp \
             -p 27015:27015/udp \
             -p 25575:25575/tcp \
+            -e BOX64_LOG=1 \
+            -e BOX86_LOG=1 \
             -v ./backups:/backups/ \
             -v ./saves:/saves/ \
             -e PORT=8211 \
