@@ -70,6 +70,8 @@ jobs:
           tags: ${{ github.run_id }}
           platforms: linux/${{ inputs.platform }}
           build-args: ${{ inputs.build-args }}
+          build-contexts: |
+            ${{ inputs.load-image != '' && inputs.load-image || 'unused' }}=docker-image://${{ inputs.load-image != '' && inputs.load-image || 'nginx' }}:latest
 
       - name: Run server
         run: |
