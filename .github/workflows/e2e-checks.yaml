@@ -7,6 +7,10 @@ on:
         type: string
         description: 'The platform to run the checks on'
         required: true
+      build-args:
+        type: string
+        description: 'The build arguments to pass to the Dockerfile'
+        required: false
 
 jobs:
   e2e-test:
@@ -32,6 +36,7 @@ jobs:
           load: true
           tags: ${{ github.run_id }}
           platforms: linux/${{ inputs.platform }}
+          build-args: ${{ inputs.build-args }}
 
       - name: Run server
         run: |
