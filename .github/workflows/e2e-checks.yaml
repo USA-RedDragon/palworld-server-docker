@@ -33,6 +33,11 @@ jobs:
   e2e-test:
     name: Docker - Test ${{ inputs.platform }}
     runs-on: ubuntu-22.04
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     steps:
       - name: Delete huge unnecessary tools folder
         run: rm -rf /opt/hostedtoolcache
@@ -47,6 +52,9 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          # network=host driver-opt needed to push to local registry
+          driver-opts: network=host
 
       - name: Download image
         if: inputs.load-image != ''
@@ -61,6 +69,12 @@ jobs:
         if: inputs.load-image != ''
         run: docker load -i /tmp/${{ inputs.load-image }}.tar
 
+      - name: Push image to local registry
+        if: inputs.load-image != ''
+        run: |
+          docker tag ${{ inputs.load-image }}:latest localhost:5000/${{ inputs.load-image }}:latest
+          docker push localhost:5000/${{ inputs.load-image }}:latest
+
       - name: Build and export to Docker
         uses: docker/build-push-action@v5
         with:
@@ -70,8 +84,6 @@ jobs:
           tags: ${{ github.run_id }}
           platforms: linux/${{ inputs.platform }}
           build-args: ${{ inputs.build-args }}
-          build-contexts: |
-            ${{ inputs.load-image != '' && inputs.load-image || 'unused' }}=docker-image://${{ inputs.load-image != '' && inputs.load-image || 'nginx' }}:latest
 
       - name: Run server
         run: |
