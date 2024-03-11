@@ -23,6 +23,11 @@ on:
         type: string
         required: false
         description: 'The run id to load the image from'
+      checkout:
+        type: string
+        required: false
+        description: 'The checkout action to use'
+        default: ${{ github.repository}}
 
 jobs:
   e2e-test:
@@ -34,6 +39,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.checkout }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
