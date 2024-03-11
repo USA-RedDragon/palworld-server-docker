@@ -11,6 +11,18 @@ on:
         type: string
         description: 'The build arguments to pass to the Dockerfile'
         required: false
+      load-image:
+        type: string
+        required: false
+        description: 'The image to load into the Docker daemon from artifacts'
+      load-image-repository:
+        type: string
+        required: false
+        description: 'The repository to load the image from'
+      load-image-run-id:
+        type: string
+        required: false
+        description: 'The run id to load the image from'
 
 jobs:
   e2e-test:
@@ -28,6 +40,19 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Download image
+        if: inputs.load-image != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.load-image }}
+          repository: ${{ inputs.load-image-repository }}
+          run-id: ${{ inputs.load-image-run-id }}
+          path: /tmp
+
+      - name: Load image
+        if: inputs.load-image != ''
+        run: docker load -i /tmp/${{ inputs.load-image }}.tar
 
       - name: Build and export to Docker
         uses: docker/build-push-action@v5
