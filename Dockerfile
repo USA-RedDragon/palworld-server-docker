@@ -1,6 +1,6 @@
 # renovate: datasource=docker depName=ghcr.io/usa-reddragon/steamcmd
 ARG STEAMCMD_VERSION=main
-ARG STEAMCMD_REF=sha256:9845a90ae314875cf66ad9d5a19b7d2cb94957b6a39d50e6c9f98255c1cbdd7b
+ARG STEAMCMD_REF=sha256:5372999d602842956f7405b26e6be27f7871aa5c411d94062f5168d12abc6d27
 ARG STEAMCMD_IMAGE=ghcr.io/usa-reddragon/steamcmd:${STEAMCMD_VERSION}@${STEAMCMD_REF}
 
 FROM golang:1.22.3-alpine as rcon-cli_builder
