@@ -43,7 +43,7 @@ FROM ${STEAMCMD_IMAGE}
 USER root
 
 # renovate: datasource=github-releases extractVersion=^build-(?<version>.*)$ depName=USA-RedDragon/palworld-server
-ARG PALWORLD_VERSION=13585476
+ARG PALWORLD_VERSION=16789618
 
 # renovate: datasource=repology versioning=deb depName=debian_12/procps
 ARG PROCPS_VERSION=2:4.0.2-3
