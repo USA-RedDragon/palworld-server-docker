@@ -32,7 +32,7 @@ on:
 jobs:
   e2e-test:
     name: Docker - Test ${{ inputs.platform }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04${{ inputs.platform == 'arm64' && '-arm' || '' }}
     services:
       registry:
         image: registry:2
