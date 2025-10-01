@@ -313,7 +313,7 @@ jobs:
             return comment;
 
       - name: Find Comment
-        uses: peter-evans/find-comment@v3
+        uses: peter-evans/find-comment@v4
         id: fc
         with:
           comment-author: github-actions[bot]
