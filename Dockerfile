@@ -23,7 +23,7 @@ FROM golang:1.24.5-alpine as supercronic_builder
 
 # SUPERCRONIC: Latest releases available at https://github.com/aptible/supercronic/releases
 # renovate: datasource=github-tags depName=aptible/supercronic
-ARG SUPERCRONIC_VERSION=v0.2.34
+ARG SUPERCRONIC_VERSION=v0.2.38
 ENV SUPERCRONIC_VERSION=${SUPERCRONIC_VERSION}
 
 WORKDIR /build
